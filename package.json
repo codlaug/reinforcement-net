@@ -1,0 +1,12 @@
+{
+  "name": "reinforcement-net",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Chris Odlaug <chrisodlaug@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.3.2",
+    "machinelearn": "^2.1.5",
+    "shelljs": "^0.8.3"
+  }
+}
