@@ -120,7 +120,7 @@ const EPSILON_DECAY_FRAMES = 10000
 const BATCH_SIZE = 64;
 const GAMMA = 0.99;
 const LEARNING_RATE = 0.001;
-const REWARD_THRESHOLD = 100;
+const REWARD_THRESHOLD = 1000;
 const MAX_FRAMES = 1000000
 
 async function main() {

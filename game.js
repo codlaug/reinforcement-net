@@ -1,28 +1,6 @@
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
 
 const tf = require('@tensorflow/tfjs');
-
-
-// TODO(cais): Tune these parameters.
-const NO_FRUIT_REWARD = -0.2;
-const FRUIT_REWARD = 10;
-const DEATH_REWARD = -10;
-
+const data = require('./testdata.js')
 
 const ACTION_HOLD = 0;
 const ACTION_BUY = 1;
@@ -70,11 +48,6 @@ module.exports.TradingGame = class TradingGame {
     }
     
 
-    this.data = []
-
-    for(let i = 0; i < 40; ++i) {
-      this.data[i] = 10+Math.cos(i)
-    }
 
     this.reset();
   }
@@ -88,8 +61,10 @@ module.exports.TradingGame = class TradingGame {
   reset() {
     this.currentIndex = 0;
     this.assets = 0;
-    this.currency = 50;
+    this.currency = 50000;
     this.startingCurrency = this.currency;
+    const randomSliceIndex = Math.floor(Math.random()*(data.length-400))
+    this.data = data.slice(randomSliceIndex, randomSliceIndex+400)
     return this.getState();
   }
 
@@ -125,13 +100,12 @@ module.exports.TradingGame = class TradingGame {
     
 
     if (done) {
-      const endingBalance = (this.currency + (this.data[this.currentIndex-1] * this.assets)) - this.startingCurrency
+      const endingBalance = (this.currency + (this.data[this.currentIndex-1].close * this.assets)) - this.startingCurrency
       console.log('DONE~! REWARD:', endingBalance)
       return {reward: endingBalance === 0 ? -1 : endingBalance, done};
     }
 
-    const assetPrice = this.data[this.currentIndex]
-
+    const assetPrice = this.data[this.currentIndex].close
 
 
     // Check if a fruit is eaten.
@@ -140,18 +114,20 @@ module.exports.TradingGame = class TradingGame {
     
     if(action === ACTION_BUY) {
       if(this.currency > 0) {
-        const currencyToSpend = Math.min(10, this.currency)
+        const currencyToSpend = Math.min(assetPrice, this.currency);
         this.assets += currencyToSpend / assetPrice
         this.currency -= currencyToSpend
         // console.log(`BUY @${assetPrice}`, `assets: ${this.assets}`, `currency: ${this.currency}`)
       }
     } else if(action === ACTION_SELL) {
       if(this.assets > 0) {
-        const assetsToSell = this.assets > this.assets/5.0 ? this.assets/5.0 : this.assets;
+        const assetsToSell = Math.min(1, this.assets);
         this.assets -= assetsToSell
         this.currency += assetsToSell * assetPrice
         // console.log(`SELL @${assetPrice}`, `assets: ${this.assets}`, `currency: ${this.currency}`)
       }
+    } else if(action === ACTION_HOLD) {
+      // console.log('HOLD')
     }
 
     this.currentIndex += 1
@@ -177,8 +153,8 @@ module.exports.TradingGame = class TradingGame {
     return {
       assets: this.assets,
       currency: this.currency,
-      price: this.data[this.currentIndex],
-      nextPrice: this.data[this.currentIndex+1]
+      price: this.data[this.currentIndex].close,
+      nextPrice: this.data[this.currentIndex+1].close
     }
   }
 }
